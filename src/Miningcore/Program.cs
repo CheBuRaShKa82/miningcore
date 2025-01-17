@@ -27,13 +27,7 @@ using Miningcore.Api.Responses;
 using Miningcore.Configuration;
 using Miningcore.Crypto.Hashing.Algorithms;
 using Miningcore.Crypto.Hashing.Equihash;
-using Miningcore.Crypto.Hashing.Ethash.Etchash;
-using Miningcore.Crypto.Hashing.Ethash.Ethash;
-using Miningcore.Crypto.Hashing.Ethash.Ethashb3;
-using Miningcore.Crypto.Hashing.Ethash.Ubqhash;
-using Miningcore.Crypto.Hashing.Progpow.Firopow;
-using Miningcore.Crypto.Hashing.Progpow.Kawpow;
-using Miningcore.Crypto.Hashing.Progpow.Phihash;
+using Miningcore.Crypto.Hashing.Ethash;
 using Miningcore.Extensions;
 using Miningcore.Messaging;
 using Miningcore.Mining;
@@ -627,7 +621,16 @@ public class Program : BackgroundService
  ██║╚██╔╝██║██║██║╚██╗██║██║██║╚██╗██║██║   ██║██║     ██║   ██║██╔══██╗██╔══╝
  ██║ ╚═╝ ██║██║██║ ╚████║██║██║ ╚████║╚██████╔╝╚██████╗╚██████╔╝██║  ██║███████╗
 ");
-        Console.WriteLine(" Norhash Mining Pool\n");
+        Console.WriteLine(" https://github.com/oliverw/miningcore\n");
+        Console.WriteLine(" Donate to one of these addresses to support the project:\n");
+        Console.WriteLine(" ETH  - miningcore.eth (ENS Address)");
+        Console.WriteLine(" BTC  - miningcore.eth (ENS Address)");
+        Console.WriteLine(" LTC  - miningcore.eth (ENS Address)");
+        Console.WriteLine(" DASH - XqpBAV9QCaoLnz42uF5frSSfrJTrqHoxjp");
+        Console.WriteLine(" ZEC  - t1YHZHz2DGVMJiggD2P4fBQ2TAPgtLSUwZ7");
+        Console.WriteLine(" ZCL  - t1MFU1vD3YKgsK6Uh8hW7UTY8mKAV2xVqBr");
+        Console.WriteLine(" ETC  - 0xF8cCE9CE143C68d3d4A7e6bf47006f21Cfcf93c0");
+        Console.WriteLine(" XMR  - 475YVJbPHPedudkhrcNp1wDcLMTGYusGPF5fqE7XjnragVLPdqbCHBdZg3dF4dN9hXMjjvGbykS6a77dTAQvGrpiQqHp2eH");
         Console.WriteLine();
     }
 
@@ -737,7 +740,7 @@ public class Program : BackgroundService
                 {
                     var target = new FileTarget(poolConfig.Id)
                     {
-                        FileName = GetLogPath(config, poolConfig.Id + ".log"),
+                        FileName = GetLogPath(config, poolConfig.Id + "_${shortdate}.log"),
                         FileNameKind = FilePathKind.Unknown,
                         Layout = layout
                     };
@@ -771,26 +774,15 @@ public class Program : BackgroundService
         var rmsm = services.GetService<RecyclableMemoryStreamManager>();
 
         // Configure RecyclableMemoryStream
-        var rmsmOptions = rmsm.Settings;
-        rmsmOptions.MaximumSmallPoolFreeBytes = clusterConfig.Memory?.RmsmMaximumFreeSmallPoolBytes ?? 0x100000;   // 1 MB
-        rmsmOptions.MaximumLargePoolFreeBytes = clusterConfig.Memory?.RmsmMaximumFreeLargePoolBytes ?? 0x800000;   // 8 MB
-        rmsm = new RecyclableMemoryStreamManager(rmsmOptions);
+        rmsm.MaximumFreeSmallPoolBytes = clusterConfig.Memory?.RmsmMaximumFreeSmallPoolBytes ?? 0x100000;   // 1 MB
+        rmsm.MaximumFreeLargePoolBytes = clusterConfig.Memory?.RmsmMaximumFreeLargePoolBytes ?? 0x800000;   // 8 MB
 
         // Configure Equihash
         EquihashSolver.messageBus = messageBus;
         EquihashSolver.MaxThreads = clusterConfig.EquihashMaxThreads ?? 1;
 
         // Configure Ethhash
-        Miningcore.Crypto.Hashing.Ethash.Ethash.Cache.messageBus = messageBus;
-
-        // Configure Etchash
-        Miningcore.Crypto.Hashing.Ethash.Etchash.Cache.messageBus = messageBus;
-        
-        // Configure Ethashb3
-        Miningcore.Crypto.Hashing.Ethash.Ethashb3.Cache.messageBus = messageBus;
-
-        // Configure Ubqhash
-        Miningcore.Crypto.Hashing.Ethash.Ubqhash.Cache.messageBus = messageBus;
+        Dag.messageBus = messageBus;
 
         // Configure Verthash
         Verthash.messageBus = messageBus;
@@ -804,21 +796,6 @@ public class Program : BackgroundService
 
         // Configure RandomARQ
         RandomARQ.messageBus = messageBus;
-
-        // Configure NexaPow
-        Miningcore.Crypto.Hashing.Algorithms.NexaPow.messageBus = messageBus;
-        
-        // Configure BeamHash
-        BeamHash.messageBus = messageBus;
-        
-        // Configure FiroPow
-        Miningcore.Crypto.Hashing.Progpow.Firopow.Cache.messageBus = messageBus;
-        
-        // Configure Kawpow
-        Miningcore.Crypto.Hashing.Progpow.Kawpow.Cache.messageBus = messageBus;
-		
-	    // Configure Phihash
-        Miningcore.Crypto.Hashing.Progpow.Phihash.Cache.messageBus = messageBus;
     }
 
     private static async Task ConfigurePostgresCompatibilityOptions(IServiceProvider services)
